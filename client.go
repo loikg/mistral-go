@@ -2,6 +2,7 @@ package mistral
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -62,14 +63,14 @@ func NewMistralClientDefault(apiKey string) *MistralClient {
 	return NewMistralClient(apiKey, Endpoint, DefaultMaxRetries, DefaultTimeout)
 }
 
-func (c *MistralClient) request(method string, jsonData map[string]interface{}, path string, stream bool, params map[string]string) (interface{}, error) {
+func (c *MistralClient) requestContext(ctx context.Context, method string, jsonData map[string]interface{}, path string, stream bool, params map[string]string) (interface{}, error) {
 	uri, err := url.Parse(c.endpoint)
 	if err != nil {
 		return nil, err
 	}
 	uri.Path = path
 	jsonValue, _ := json.Marshal(jsonData)
-	req, err := http.NewRequest(method, uri.String(), bytes.NewBuffer(jsonValue))
+	req, err := http.NewRequestWithContext(ctx, method, uri.String(), bytes.NewBuffer(jsonValue))
 	if err != nil {
 		return nil, err
 	}
@@ -119,4 +120,8 @@ func (c *MistralClient) request(method string, jsonData map[string]interface{}, 
 	}
 
 	return result, nil
+}
+
+func (c *MistralClient) request(method string, jsonData map[string]interface{}, path string, stream bool, params map[string]string) (interface{}, error) {
+	return c.requestContext(context.Background(), method, jsonData, path, stream, params)
 }

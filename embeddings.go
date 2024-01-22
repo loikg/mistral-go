@@ -1,6 +1,7 @@
 package mistral
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 )
@@ -22,12 +23,16 @@ type EmbeddingResponse struct {
 }
 
 func (c *MistralClient) Embeddings(model string, input []string) (*EmbeddingResponse, error) {
+	return c.EmbeddingsContext(context.Background(), model, input)
+}
+
+func (c *MistralClient) EmbeddingsContext(ctx context.Context, model string, input []string) (*EmbeddingResponse, error) {
 	requestData := map[string]interface{}{
 		"model": model,
 		"input": input,
 	}
 
-	response, err := c.request(http.MethodPost, requestData, "v1/embeddings", false, nil)
+	response, err := c.requestContext(ctx, http.MethodPost, requestData, "v1/embeddings", false, nil)
 	if err != nil {
 		return nil, err
 	}
